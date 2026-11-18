@@ -7,6 +7,7 @@ import java.util.Stack;
 
 public class StackDemo {
     public static void main(String[] args) {
+        /*
         Queue<String> queue = new ArrayDeque<>();
         queue.offer("abc");
          queue.poll()
@@ -14,7 +15,7 @@ public class StackDemo {
         Queue<String> linkedList = new LinkedList<>();
         linkedList.offer("abc");
         linkedList.poll()
-                
+        */
         // Recommended : ArrayDeque
         ArrayDeque<String> newStack = new ArrayDeque<>(); // This is my stack data structure which will hold strings
         newStack.push("Harry potter");

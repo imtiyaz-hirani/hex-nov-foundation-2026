@@ -173,3 +173,73 @@ mysql> select * from learner;
 */
 
 -- the earlier contact record(id =1) has no use as it is being replaced but still is in the table and its called as ORPHAN record. 
+
+-- select op
+-- Query to fetch all learners 
+/*
+When your fetch child record, U must also fetch the corresponding record of the Parent tables. 
+learner has 3 parent tables: user, contact, address. 
+2 of these are NOT NULL and address can be NULL. 
+*/
+select * from learner; -- this give me learner details with FKs which is not of much help 
+
+/*
+3 ways of combining tables (Parent child relationship )
+1. Manual Mapping 
+2. Joins 
+3. Nested Queries (Sub-Query)
+*/
+
+ -- Manual Mapping 
+select l.id,l.name,c.primary_contact, c.main_email, u.username, u.is_active , a.city
+from learner l, contact c, user u , address a
+where l.user_id = u.id AND l.contact_id = c.id AND l.address_id = a.id;
+-- the issue with manual mapping is that if any of the where clause conditions fail, we loose entire info (it displays nothing)
+
+-- joins 
+/*
+1. JOIN (Inner JOIN)
+2. LEFT JOIN 
+*/
+
+select l.id,l.name,c.primary_contact, c.main_email, u.username, u.is_active , a.city
+from learner l 
+	JOIN user u ON l.user_id = u.id 
+    JOIN contact c ON l.contact_id = c.id 
+    JOIN address a ON l.address_id = a.id; 
+
+-- in the above INNER JOIN query, since address a is NULL there is nothing to JOIN and hence we loose all records that have no address. 
+
+select l.id,l.name,c.primary_contact, c.main_email, u.username, u.is_active , coalesce(a.city , 'Not Provided') as city
+from learner l 
+	JOIN user u ON l.user_id = u.id 
+    JOIN contact c ON l.contact_id = c.id 
+    LEFT JOIN address a ON l.address_id = a.id;  -- JOIN address if you can , else ignore it 
+
+
+-- giving proper info to app e.g. is_active 
+select l.id,l.name,c.primary_contact, c.main_email, u.username,
+ case u.is_active 
+	 when 1 THEN 'ENABLED' 
+	 when 0 THEN 'DISABLED'
+	 ELSE 'UNKNOWN' 
+ END 
+ as learner_status, 
+ coalesce(a.city , 'Not Provided') as city
+from learner l 
+	JOIN user u ON l.user_id = u.id 
+    JOIN contact c ON l.contact_id = c.id 
+    LEFT JOIN address a ON l.address_id = a.id;
+
+
+
+
+
+
+
+
+
+
+
+
+

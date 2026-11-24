@@ -232,14 +232,40 @@ from learner l
     LEFT JOIN address a ON l.address_id = a.id;
 
 
+-- inserting records in course table but since it has instructor_id and department_id as foreign_keys, we start from there
+-- but instructor also has FK from user, contact and address tables so lets start from there. 
 
+insert into user (username, password, role) 
+values ('Albus Dumbledore', "albus@123", "INSTRUCTOR"); 
+ update user set username = 'albus' where id = 3;
+insert into contact(primary_contact,  main_email)
+values("85968978567", "albus@gmail.com");
 
+insert into address(city, pincode) values ('MUMBAI', '400092');
 
+insert into instructor(name, salary, contact_id, user_id, address_id) 
+values ("Albus Dumbledore", "250000", 3,3,2); 
 
+insert into department(name) values ('programming'),('product management');  -- multiple inserts 
 
+insert into course (name, fee, instructor_id, department_id) 
+values ('SQL programming', 3500, 1, 1);
 
+-- Query to fetch info about the course 
+select c.id as course_id,
+c.name as course_name,
+c.fee,
+i.name as instructor_name,
+d.name as department_name
+from course c 
+JOIN instructor i ON c.instructor_id = i.id 
+JOIN department d ON c.department_id = d.id;  
 
-
-
-
+/*
++-----------+-----------------+------+------------------+-----------------+
+| course_id | course_name     | fee  | instructor_name  | department_name |
++-----------+-----------------+------+------------------+-----------------+
+|         1 | SQL programming | 3500 | Albus Dumbledore | programming     |
++-----------+-----------------+------+------------------+-----------------+
+*/
 

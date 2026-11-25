@@ -466,3 +466,50 @@ group by c.id,c.name
 insert into track(name) values ('Java Programming'), ('Product Mgmt'), ('App Development');
 
 insert into course_track(course_id, track_id) values (1,1),(2,1),(2,3),(3,3),(4,2),(5,2);
+
+-- lets add a lead_id column in instructor table and referece it to the same table instructor as self join 
+
+alter table instructor 
+	ADD column lead_id INT NULL,
+	ADD constraint fk_instructor_lead
+		FOREIGN KEY (lead_id)
+        REFERENCES instructor(id);
+
+update instructor SET lead_id = 1 where id = 2; 
+update instructor SET lead_id = 2 where id = 3; 
+update instructor SET lead_id = 2 where id = 4; 
+
+-- self join: display the names of instructors along with their leads. 
+
+select i.name as Instructor, coalesce(l.name, "No Lead") as 'Lead_name'
+from instructor i  -- ref 1 : PK: id
+LEFT JOIN instructor l  -- ref 2 : FK : lead_id
+ON l.id = i.lead_id;
+/*
+Albus Dumbledore	No Lead
+Severus Snape	Albus Dumbledore
+Jack Reacher	Severus Snape
+Simon Orielly	Severus Snape
+*/
+
+-- count number of instructors working directly under each lead 
+
+select l.name, count(i.id) as 'Number_of_Instrcutors'
+from instructor i 
+JOIN instructor l ON l.id = i.lead_id
+group by l.id, l.name; 
+
+/*
+Albus Dumbledore	1
+Severus Snape	2
+*/
+
+
+
+
+
+
+
+
+
+

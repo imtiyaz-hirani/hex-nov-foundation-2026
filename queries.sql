@@ -504,6 +504,35 @@ Albus Dumbledore	1
 Severus Snape	2
 */
 
+-- Display instructors that teach atleast one course. 
+
+select distinct i.name   -- distinct does not prevent JOIN , it only removes duplicates after the join has happend
+from instructor i JOIN course c ON i.id = c.instructor_id;
+
+-- in the above query, a full join happens, and then for ignoring duplicates we use distinct. 
+-- in a DB where we have millions of records, this approach of letting a full join happen is never going to work 
+
+-- do a semi join: JOIN after the condition is true 
+
+select i.name 
+from instructor i 
+where EXISTS (select i.name from instructor i JOIN course c ON i.id = c.instructor_id);
+
+-- EXISTS only needs 1 match, so if an instructor say albus comes up due to 1st course connection, the rest
+-- of the connections of albus teaching other courses is NOT done. 
+
+-- if the condition WHERE EXISTS is true even once for the first time check, move on to second instructor 
+
+-- display department tht has atleast one instructor 
+select d.name
+from department d 
+where EXISTS (select 1 from department d 
+JOIN course c ON d.id = c.department_id 
+JOIN instructor i ON i.id = c.instructor_id);
+ 
+
+
+
 
 
 

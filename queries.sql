@@ -389,5 +389,80 @@ programming	243333.33333333334
 product management	225000
 */
 
+-- Display total enrolled learners for each course. 
+
+-- learner insertion
+/* Insertion */
+insert into learner (name, user_id,contact_id,address_id) 
+values ("draco malfoy", 9, 9,8);
+
+insert into user(username,password,role) 
+values ("draco", "draco@123", "LEARNER");
+ 
+insert into contact(primary_contact,  main_email)
+values("547567567567", "draco@gmail.com");
+
+insert into address(city) value('london');
+
+-- assign course to learner 
+insert into learner_course(learner_id, course_id, date_of_enroll, amount_paid, coupon, discount )
+values (7,1, now(), 3500, NULL, 0),
+(7,2, now(), 6000, 'OFF500', 500),
+(8,1,now(),3500, null, 0),
+(9,1,now(),3500, null, 0),
+(9,2,now(),6000, 'OFF500', 500),
+(9,3,now(),7500, 'OFF1000', 1000),
+(10,4,now(),9500, null, 0),
+(9,5,now(),2000, 'OFF345', 345);
 
 -- Display total enrolled learners for each course. 
+
+select c.name as 'Course',count(l.id) as 'Learners'
+from course c  
+JOIN learner_course lc ON c.id = lc.course_id 
+JOIN learner l ON l.id = lc.learner_id
+group by c.id,c.name;
+
+-- Display total enrolled learners for each course. only display courses which have atleast 2 students , 
+-- order in ASC order
+
+select c.name as 'course',count(l.id) as 'learners'
+from course c  
+JOIN learner_course lc ON c.id = lc.course_id 
+JOIN learner l ON l.id = lc.learner_id
+group by c.id,c.name
+having learners >= 1   -- having is used specifically to write condition on grouing functions 
+order by learners ASC  -- by default, ordering is ASC 
+limit 10 -- it limits the result set to only 2 records 
+;
+  
+insert into course (name, fee, instructor_id, department_id) 
+values ('Scrum A-Z', 6000, 3, 2);
+
+select c.name as 'course',count(l.id) as 'learners'
+from course c  
+LEFT JOIN learner_course lc ON c.id = lc.course_id 
+LEFT JOIN learner l ON l.id = lc.learner_id
+group by c.id,c.name
+;
+/*
+SQL programming		3
+JAVA programming	2
+SPRING Framework	1
+Product Management	1
+ITA cert 1			1
+Scrum A-Z			0
+*/
+
+select c.name as 'course',count(l.id) as 'learners'
+from learner l  
+RIGHT JOIN learner_course lc ON l.id = lc.learner_id
+RIGHT JOIN course c ON c.id = lc.course_id
+group by c.id,c.name
+;
+
+-- LEFT and RIGHT are same, except it depends on the sequence of join. 
+
+insert into track(name) values ('Java Programming'), ('Product Mgmt'), ('App Development');
+
+insert into course_track(course_id, track_id) values (1,1),(2,1),(2,3),(3,3),(4,2),(5,2);

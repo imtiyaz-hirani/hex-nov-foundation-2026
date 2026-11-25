@@ -208,7 +208,8 @@ from learner l
     JOIN contact c ON l.contact_id = c.id 
     JOIN address a ON l.address_id = a.id; 
 
--- in the above INNER JOIN query, since address a is NULL there is nothing to JOIN and hence we loose all records that have no address. 
+-- in the above INNER JOIN query, since address a is NULL there is nothing to JOIN 
+-- and hence we loose all records that have no address. 
 
 select l.id,l.name,c.primary_contact, c.main_email, u.username, u.is_active , coalesce(a.city , 'Not Provided') as city
 from learner l 
@@ -269,3 +270,124 @@ JOIN department d ON c.department_id = d.id;
 +-----------+-----------------+------+------------------+-----------------+
 */
 
+-- Group By 
+
+-- display all course info of instructor with id= 1. 
+
+select c.*, i.name 
+from instructor i 
+JOIN course c ON i.id = c.instructor_id 
+where i.id=1;
+
+
+insert into user (username, password, role) 
+values ('severus', "severus@123", "INSTRUCTOR"); 
+ 
+ insert into contact(primary_contact,  main_email)
+values("6656565656", "severus@gmail.com");
+
+insert into address(city, pincode) values ('LONDON', 'TW31SE');
+
+insert into instructor(name, salary, contact_id, user_id, address_id) 
+values ("Severus Snape", "230000", 4,4,3); 
+
+
+insert into course (name, fee, instructor_id, department_id) 
+values ('JAVA programming', 6500, 1, 1);
+
+
+insert into course (name, fee, instructor_id, department_id) 
+values ('SPRING Framework', 8500, 2, 1);
+
+-- display number of courses taught by each/all instructors
+
+/*
+Intr_name			Number_of_courses
+Albus Dumbledore		2
+Severus Snape			1	
+*/
+
+select i.name, count(c.id) as 'Number of courses'
+from instructor i 
+JOIN course c ON i.id = c.instructor_id
+group by i.id, i.name;
+
+/*
+i.id = 1 i.name = 'Albus Dumbledore' -- group 1
+ 1 | Albus Dumbledore | 250000 |          3 |       3 |          2 |  1 | SQL programming  | 3500 |             1 |             1 |
+ 1 | Albus Dumbledore | 250000 |          3 |       3 |          2 |  2 | JAVA programming | 6500 |             1 |             1 |
+
+i.id = 2 i.name = 'Severus Snape'  --group 2
+2 | Severus Snape    | 230000 |          4 |       4 |          3 |  3 | SPRING Framework | 8500 |             2 |             1 |
+*/
+
+/* Aggregate / Grouping Functions 
+1. count
+2. avg
+3. max
+4. min
+5. sum
+*/
+
+-- compute the avg salary of instructors for each department. 
+
+/*
+dept_name	 Avg_salary
+programming		2L
+management		1.8L
+*/
+-- record 1
+insert into user (username, password, role) 
+values ('jack', "jack@123", "INSTRUCTOR"); 
+ 
+ insert into contact(primary_contact,  main_email)
+values("453534535345", "jack@gmail.com");
+
+insert into address(city, pincode) values ('NEW YORK', 'NY5 6yth');
+
+insert into instructor(name, salary, contact_id, user_id, address_id) 
+values ("Jack Reacher", "270000", 5,5,4); 
+
+-- record 2
+insert into user (username, password, role) 
+values ('simon', "simon@123", "INSTRUCTOR"); 
+ 
+ insert into contact(primary_contact,  main_email)
+values("78785657567", "simon@gmail.com");
+
+insert into address(city, pincode) values ('CHENNAI', '556098');
+
+insert into instructor(name, salary, contact_id, user_id, address_id) 
+values ("Simon Orielly", "180000", 6,6,5); 
+
+
+insert into course (name, fee, instructor_id, department_id) 
+values ('Product Management', 9500, 3, 2);
+
+
+insert into course (name, fee, instructor_id, department_id) 
+values ('ITA cert 1', 2345, 4, 2);
+
+-- compute the avg salary of instructors for each department. 
+
+select d.name, avg(i.salary) as 'AVG Salary'
+from instructor i 
+JOIN course c ON i.id = c.instructor_id 
+JOIN department d ON c.department_id = d.id
+group by d.name;
+
+/*
+d.name = programming
+1	Albus Dumbledore	250000	3	3	2	1	SQL programming	3500	1	1	1
+1	Albus Dumbledore	250000	3	3	2	2	JAVA programming	6500	1	1	1
+2	Severus Snape	230000	4	4	3	3	SPRING Framework	8500	2	1	1
+d.name = product management
+3	Jack Reacher	270000	5	5	4	4	Product Management	9500	3	2	2
+4	Simon Orielly	180000	6	6	5	5	ITA cert 1	2345	4	2	2
+
+programming	243333.33333333334
+product management	225000
+*/
+
+
+-- Display total enrolled learners for each course. 

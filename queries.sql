@@ -690,12 +690,89 @@ select c.name ,
 row_number() OVER (order by c.fee ASC) as row_num ,
 RANK() OVER (order by fee DESC) as rnk, 
 DENSE_RANK() OVER (order by fee DESC) as dense_rnk
-from course c; 
+from course c;
 
 
 -- TODO: compute ranks by instructor salaries. ASC & DESC
 
+select c.name, c.fee , c.department_id, 
+DENSE_RANK() OVER (partition by c.department_id order by fee DESC) as rnk
+from course c;
 
+/*
+SPRING Framework	8500	1	1
+JAVA programming	6500	1	2
+SQL programming		3500	1	3
+Product Management	9500	2	1
+Scrum A-Z			6500	2	2
+ITA cert 1			2345	2	3
+*/
+
+-- Procedure 
+
+
+-- think of it as a box that holds SQL query(ies)
+DELIMITER $$
+create procedure all_courses() 
+BEGIN
+	select * from course;
+END;
+ $$
+
+show procedure status where db='lms_db_nov_2026';
+
+CALL all_courses();
+
+-- procedues can be called from Java app directly. which means, the java programmer would not know what logic is 
+-- inside the procedure. 
+-- it only sees theresult procedure give 
+-- THIS ENSURES LOGIC SECURITY 
+
+-- display all courses that belong to particular department 
+
+DELIMITER $$
+create procedure courses_by_dept_id(IN p_deptId INT) -- p_deptId = 1
+BEGIN
+	select c.id,c.name
+	from course c
+	where c.department_id = p_deptId;
+END;
+$$
+
+call courses_by_dept_id(1);
+
+-- Give the total fee of all courses that belong to particular track (id)
+
+DELIMITER $$
+create procedure sum_course_fee_by_track_id(IN p_trackId INT, OUT p_sum int)
+BEGIN
+	-- sql
+	select SUM(c.fee) into p_sum
+	from course c 
+	JOIN course_track ct ON c.id = ct.course_id
+	where ct.track_id = p_trackId;
+END;
+$$
+
+drop procedure sum_course_fee_by_track_id; 
+
+CALL sum_course_fee_by_track_id(2, @sum);
+select @sum;
+
+-- INOUT 
+DELIMITER $$
+create procedure sum_course_fee_by_track_id_inout(INOUT p_val INT)
+BEGIN
+	-- sql
+	select SUM(c.fee) into p_val
+	from course c 
+	JOIN course_track ct ON c.id = ct.course_id
+	where ct.track_id = p_val;
+END;
+$$
+SET @val = 2;
+CALL sum_course_fee_by_track_id_inout(@val);
+select @val
 
 
 

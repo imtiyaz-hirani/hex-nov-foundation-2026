@@ -530,13 +530,120 @@ where EXISTS (select 1 from department d
 JOIN course c ON d.id = c.department_id 
 JOIN instructor i ON i.id = c.instructor_id);
  
+-- Nested Query / Subquery 
+-- You write sub query, when you need something pre-calculated. 
+-- Never replace normal join queries with sub-queries. 
+
+-- Display all instructors whose salary is greater than average salary of instructors working in programming department
+-- Fan-out issue
 
 
+select i.name -- we display those instructors whose salary is greater than avg salary computed
+from instructor i
+where i.salary > (select i.name from instructor i   -- once we get instructors from programming department, we compute their avg(salary). here we avoid duplicates
+					WHERE EXISTS (select i.name from instructor i  
+								JOIN course c ON i.id = c.instructor_id
+								JOIN department d ON c.department_id = d.id 
+								where d.name='programming')); -- where exits is used to avoid fan-out problem i.e. duplicate records getting added for computing avg 
+
+ -- where exits is used to avoid fan-out problem i.e. duplicate records getting added for computing avg 
+ -- once we get instructors from programming department, we compute their avg(salary). here we avoid duplicates
+ -- we display those instructors whose salary is greater than avg salary computed
 
 
+-- step 1: fetch all instructors that are teaching in department=programming via course 
 
+select i.id from instructor i  
+JOIN course c ON i.id = c.instructor_id
+JOIN department d ON c.department_id = d.id 
+where d.name='programming';
 
+-- o/p: 1 1 2  
 
+-- step 2 - to fix this we use IN
+select i.name
+from instructor i
+where i.salary >
+				(select avg(i.salary)
+				from instructor i
+				WHERE i.id IN (select i.id from instructor i  
+								JOIN course c ON i.id = c.instructor_id
+								JOIN department d ON c.department_id = d.id 
+								where d.name='programming'));
+-- Nested - Sub-Queries 
+/*
+IN 
+where exists 
+ALL 
+ANY
+=
+*/
+
+-- display instructors earning more than ALL the instructor working in 'programming' department 
+select i.name
+from instructor i 
+where i.salary > ALL (select i.salary from instructor i 
+						JOIN course c ON i.id = c.instructor_id
+						JOIN department d ON c.department_id = d.id 
+						where d.name='programming');
+-- we don't usually use this ALL as this is similar to using max grouping Fn 
+select i.name
+from instructor i 
+where i.salary >  (select max(i.salary) from instructor i 
+						JOIN course c ON i.id = c.instructor_id
+						JOIN department d ON c.department_id = d.id 
+						where d.name='programming');
+
+-- display instructors earning more than atleast one instructor from 'product management' department 
+select i.name
+from instructor i 
+where i.salary > ANY (select i.salary from instructor i 
+						JOIN course c ON i.id = c.instructor_id
+						JOIN department d ON c.department_id = d.id 
+						where d.name='product management');
+ -- OR                       
+select i.name
+from instructor i 
+where i.salary >  (select min(i.salary) from instructor i 
+						JOIN course c ON i.id = c.instructor_id
+						JOIN department d ON c.department_id = d.id 
+						where d.name='product management');
+                         
+
+-- IN 
+-- display all learners living in following cities ['london', 'mumbai']
+
+select l.name
+from learner l JOIN address a ON l.address_id = a.id
+where a.city IN ('london', 'mumbai');
+
+-- using subquery 
+select l.name
+from learner l
+where l.address_id IN (select a.id 
+						from address a 
+						where a.city IN ('london', 'mumbai')); 
+-- 7 = [8,9,1,2]
+
+-- display learner that have enrolled in course name as Java Programming. do this using sub query 
+
+select l.name
+from learner l
+where l.id IN 
+			(select lc.learner_id 
+            from learner_course lc 
+            where lc.course_id = (select c.id -- '=' here works because we r guarateed to get single id as c.name is unique
+								  from course c 
+                                   where c.name="java programming")); 
+
+select l.name
+from learner l
+where l.id IN 
+			(select lc.learner_id 
+            from learner_course lc 
+            where lc.course_id IN ( select c.id 
+									from course c 
+									where c.name="java programming"));
 
 
 

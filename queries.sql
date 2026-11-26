@@ -645,6 +645,61 @@ where l.id IN
 									from course c 
 									where c.name="java programming"));
 
+-- window functions : rank(), dense_rank(), row_number() 
+/*
++----+--------------------+------+---------------+---------------+
+| id | name               | fee  | instructor_id | department_id |
++----+--------------------+------+---------------+---------------+
+|  1 | SQL programming    | 3500 |             1 |             1 |
+|  2 | JAVA programming   | 6500 |             1 |             1 |
+|  3 | SPRING Framework   | 8500 |             2 |             1 |
+|  4 | Product Management | 9500 |             3 |             2 |
+|  5 | ITA cert 1         | 2345 |             4 |             2 |
+|  6 | Scrum A-Z          | 6000 |             3 |             2 |
++----+--------------------+------+---------------+---------------+
+*/
+-- display the courses and their ranks as per the fee 
+select c.name, c.fee , RANK() OVER (order by fee DESC) as rnk
+from course c;
+
+/*
+Product Management	9500	1
+SPRING Framework	8500	2
+JAVA programming	6500	3
+Scrum A-Z			6500	3
+SQL programming		3500	5
+ITA cert 1			2345	6
+*/
+update course SET fee=6500 where id=6;
+-- rank() skips the sequence -- above it has skipped rank 4
+
+select c.name, c.fee , DENSE_RANK() OVER (order by fee DESC) as rnk
+from course c;
+
+/*
+Product Management	9500	1
+SPRING Framework	8500	2
+JAVA programming	6500	3
+Scrum A-Z			6500	3
+SQL programming		3500	4
+ITA cert 1			2345	5
+*/
+-- dense rank does not skip seq. 
+
+select c.name ,
+row_number() OVER (order by c.fee ASC) as row_num ,
+RANK() OVER (order by fee DESC) as rnk, 
+DENSE_RANK() OVER (order by fee DESC) as dense_rnk
+from course c; 
+
+
+-- TODO: compute ranks by instructor salaries. ASC & DESC
+
+
+
+
+
+
 
 
 

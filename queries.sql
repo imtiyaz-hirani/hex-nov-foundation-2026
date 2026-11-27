@@ -826,6 +826,52 @@ update user SET is_active=false where id=9;
 update user SET is_active=true where id between 1 and 11 ; 
 
 
+-- Signup for learner 
+-- make contact_id NULL 
+desc learner; 
+
+-- ask for name, username, password 
+-- assign role as LEARNER, is_active as true 
+
+-- check if username exits already is yes then throw exception
+-- do a simple insert 
+
+DELIMITER $$
+create procedure learner_signup(
+IN p_username varchar(255),
+IN p_password varchar(255), 
+IN p_primary_contact varchar(255),
+IN p_main_email varchar(255),
+IN p_learner_name varchar(255)
+)
+
+begin
+	declare v_user_id INT; 
+    declare v_contact_id INT; 
+    -- validate username to check if its already present 
+    if EXISTS ( select 1 from user u where u.username = p_username) THEN
+		SIGNAL sqlstate '45000' SET message_text='Username already taken, try a new one'; 
+    end if; 
+    
+	-- sql 
+    insert into user(username,password, role, is_active) values (p_username, p_password, 'LEARNER', true); 
+    SET v_user_id = last_insert_id(); -- the id that DB will use to insert user is now in v_user_id
+    
+    insert into contact(primary_contact, main_email) values (p_primary_contact, p_main_email);
+    SET v_contact_id = last_insert_id(); -- the id that DB will use to insert contact is now in v_contact_id
+    
+    insert into learner(name,user_id,contact_id) values (p_learner_name, v_user_id, v_contact_id);
+end;
+$$
+ 
+CALL learner_signup('imtiyaz', 'imtiyaz@123', '556445889', 'imtiyaz00hirani@gmail.com', 'Imtiyaz Hirani');
+
+select * from learner; 
+select * from user; 
+select * from contact; 
+
+CALL learner_signup('imtiyaz', 'imtiyaz@123', '556445889', 'imtiyaz00hirani@gmail.com', 'Imtiyaz Hirani');
+-- Error Code: 1644. Username already taken, try a new one
 
 
 

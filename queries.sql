@@ -774,6 +774,56 @@ SET @val = 2;
 CALL sum_course_fee_by_track_id_inout(@val);
 select @val
 
+-- create a login procedure for LMS system
+-- in: username, password 
+-- out: role 
+
+DELIMITER $$
+create procedure login(
+IN p_username varchar(255) , 
+IN p_password varchar(255), 
+OUT p_role varchar(255) )
+
+BEGIN
+	DECLARE v_password varchar(255);
+    DECLARE v_role varchar(255);
+    DECLARE v_isactive boolean;
+    
+	-- sql
+    select u.password, u.role, u.is_active into v_password, v_role, v_isactive
+    from user u
+    where u.username=p_username;
+    
+    -- check for validation
+     
+    IF v_password IS NULL OR p_password <> v_password THEN  -- v_password is the DB password, p_password is given by enduser
+		SIGNAL sqlstate "45000" SET message_text="Invalid credentials"; -- throw exception
+	END IF;
+    
+    IF v_isactive = FALSE THEN
+		SIGNAL sqlstate "45000" SET message_text="User is disabled";
+	END IF;
+    
+    SET p_role = v_role; 
+END;
+$$
+
+CALL login('harry', 'harry@123', @role); -- LEARNER
+select @role;
+
+CALL login('albus', 'albus@123', @role); -- INSTRUCTOR
+select @role;
+
+CALL login('dfsdgsdfsdf', 'albus@123', @role); -- Error Code: 1644. Invalid credentials
+
+CALL login('albus', 'albus123', @role); -- Error Code: 1644. Invalid credentials
+
+CALL login('draco', 'draco@123', @role); -- Error Code: 1644. User is disabled
+
+select * from user; 
+delete from user where id=10;
+update user SET is_active=false where id=9;
+update user SET is_active=true where id between 1 and 11 ; 
 
 
 

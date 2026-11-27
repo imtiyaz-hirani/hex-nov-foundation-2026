@@ -873,6 +873,133 @@ select * from contact;
 CALL learner_signup('imtiyaz', 'imtiyaz@123', '556445889', 'imtiyaz00hirani@gmail.com', 'Imtiyaz Hirani');
 -- Error Code: 1644. Username already taken, try a new one
 
+desc learner_course; 
+
+
+-- Enroll procedure 
+-- a learner(learner_id) enrolls in a course(course_id)  
+-- check id given p_learner_id is present in learner table - if NO then say leanrer id invalid
+-- check if given p_course_id is present in course table - if no then say course id invalid 
+-- check if combo of p_learner_id,p_course_id is present in learner_course, if yes then say Already enrolled 
+-- read amount_paid , coupon 
+-- discount = course.fee - amount_paid 
+-- insert in learner_course 
+
+DELIMITER $$
+create procedure enroll(
+IN p_learner_id INT,
+IN p_course_id INT,
+IN p_amount_paid double,
+IN p_coupon varchar(255))
+BEGIN
+declare v_discount double;
+declare v_fee double;
+
+-- validate learner_id
+IF NOT EXISTS (select 1 from learner where id=p_learner_id) THEN
+	SIGNAL SQLSTATE '45000' SET message_text = 'Leearner id invalid';
+END IF; 
+
+-- validate course_id
+IF NOT EXISTS (select 1 from course where id=p_course_id) THEN
+	SIGNAL SQLSTATE '45000' SET message_text = 'Course id invalid';
+END IF; 
+
+-- validate if already enrolled 
+IF EXISTS (select 1 from learner_course where learner_id = p_learner_id AND course_id = p_course_id) THEN
+	SIGNAL SQLSTATE '45000' set message_text = 'Learner already enrolled in the course'; 
+END IF; 
+
+-- compute discount given 
+select fee into v_fee
+from course 
+where id = p_course_id; 
+
+SET v_discount = v_fee - p_amount_paid; 
+
+-- insert for enroll 
+insert into learner_course(learner_id, course_id, date_of_enroll, amount_paid, coupon, discount)
+values 
+(p_learner_id, p_course_id, current_date(), p_amount_paid, p_coupon, v_discount); 
+END;
+$$
+
+CALL enroll(11, 1, 3200, 'DISCOUNT300'); -- works
+CALL enroll(11, 1, 3200, 'DISCOUNT300'); -- Error Code: 1644. Learner already enrolled in the course
+
+CALL enroll(110, 1, 3200, 'DISCOUNT300'); -- Error Code: 1644. Leearner id invalid
+CALL enroll(11, 100, 3200, 'DISCOUNT300'); -- Error Code: 1644. Course id invalid
+
+-- Views 
+select * 
+from learner l 
+LEFT JOIN user u ON l.user_id = u.id 
+LEFT JOIN contact c ON l.contact_id = c.id 
+LEFT JOIN address a ON l.address_id = a.id; 
+
+-- learner info to be given : Template 
+-- id, name, username, is_active , primary_contact, main_email, city
+
+create view learner_view AS
+select l.id as 'learner_id', l.name as 'learner_name', u.username as 'username', u.is_active , 
+c.primary_contact as 'contact' , c.main_email as 'email' , coalesce(a.city, "Not given") as 'City' 
+from learner l 
+LEFT JOIN user u ON l.user_id = u.id 
+LEFT JOIN contact c ON l.contact_id = c.id 
+LEFT JOIN address a ON l.address_id = a.id; 
+
+select * from learner_view; 
+
+
+/*
+Views
+1. Horizontal view : hide attributes ex. learner_view 
+2. Vertical view : hide tuples/records ex. active_learner_view
+*/
+
+create view active_learner_view AS
+select l.id as 'learner_id', l.name as 'learner_name', u.username as 'username', u.is_active , 
+c.primary_contact as 'contact' , c.main_email as 'email' , coalesce(a.city, "Not given") as 'City' 
+from learner l 
+LEFT JOIN user u ON l.user_id = u.id 
+LEFT JOIN contact c ON l.contact_id = c.id 
+LEFT JOIN address a ON l.address_id = a.id
+where u.is_active=true; 
+
+-- create a view of stats for courses having learners  
+/*
+course name | instructor name | number_of_learners 
+*/
+create view course_learner_stats AS
+select c.name as 'course name', i.name as 'instructor name', count(l.id) as 'number_of_learners'
+from learner l 
+JOIN learner_course lc ON l.id = lc.learner_id
+JOIN course c ON lc.course_id = c.id
+JOIN instructor i ON i.id = c.instructor_id
+group by c.id,c.name, i.name;
+
+/*
+View vs. procedure
+
+View is created on select statement
+Procedure is usually created for insert/update/delete ops 
+
+View cannnot take any i/p from end user
+Procedure can take i/p via IN parameter / INOUT parameter 
+*/
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
